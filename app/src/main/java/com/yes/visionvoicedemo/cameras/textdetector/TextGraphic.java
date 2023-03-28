@@ -16,11 +16,9 @@
 
 package com.yes.visionvoicedemo.cameras.textdetector;
 
-import static androidx.camera.core.CameraX.getContext;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import android.annotation.SuppressLint;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,7 +26,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.yes.visionvoicedemo.cameras.GraphicOverlay;
 import com.yes.visionvoicedemo.cameras.GraphicOverlay.Graphic;
@@ -94,6 +91,10 @@ public class TextGraphic extends Graphic {
     rect = new Rect();
     // Redraw the overlay, as this graphic has been added.
     postInvalidate();
+  }
+
+  public Text getText() {
+    return text;
   }
 
   @Override

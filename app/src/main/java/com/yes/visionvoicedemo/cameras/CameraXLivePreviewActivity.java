@@ -57,6 +57,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory;
 
 import com.google.android.gms.common.annotation.KeepName;
 import com.google.mlkit.common.MlKitException;
+import com.google.mlkit.vision.text.Text;
 import com.yes.visionvoicedemo.R;
 import com.yes.visionvoicedemo.STTActivity;
 import com.yes.visionvoicedemo.cameras.textdetector.TextGraphic;
@@ -170,13 +171,11 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
         int action = event.getAction();
         float curX = event.getX();
         float curY = event.getY();
-        if (action == ACTION_DOWN) {
+        if (action == MotionEvent.ACTION_DOWN) {
           TextGraphic textGraphic = getTouchedTextGraphic(curX, curY);
           if (textGraphic != null) {
-            String text = textGraphic.toString();
+            String text = textGraphic.getText().getText();
             Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
-          } else {
-            Toast.makeText(CameraXLivePreviewActivity.this, "FAIL", Toast.LENGTH_SHORT).show();
           }
         }
         return true;
