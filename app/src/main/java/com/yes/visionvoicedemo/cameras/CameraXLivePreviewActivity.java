@@ -165,20 +165,23 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
     });
 
     previewView.setOnTouchListener(new View.OnTouchListener() {
-      @SuppressLint("ClickableViewAccessibility")
       @Override
       public boolean onTouch(View v, MotionEvent event) {
         int action = event.getAction();
         float curX = event.getX();
         float curY = event.getY();
+
         if (action == MotionEvent.ACTION_DOWN) {
           TextGraphic textGraphic = getTouchedTextGraphic(curX, curY);
           if (textGraphic != null) {
             String text = textGraphic.getText().getText();
             Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
+          } else {
+            Toast.makeText(CameraXLivePreviewActivity.this, "Text not found", Toast.LENGTH_SHORT).show();
           }
+          return true;
         }
-        return true;
+        return false;
       }
     });
   }
