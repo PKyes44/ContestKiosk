@@ -26,6 +26,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.yes.visionvoicedemo.cameras.GraphicOverlay;
 import com.yes.visionvoicedemo.cameras.GraphicOverlay.Graphic;
@@ -35,7 +36,9 @@ import com.google.mlkit.vision.text.Text.Line;
 import com.google.mlkit.vision.text.Text.Symbol;
 import com.google.mlkit.vision.text.Text.TextBlock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -60,6 +63,8 @@ public class TextGraphic extends Graphic {
   private final boolean showLanguageTag;
   private final boolean showConfidence;
   private Rect rect = null;
+
+  private GraphicOverlay graphicOverlay;
 
   public TextGraphic(
           GraphicOverlay overlay,
@@ -169,7 +174,7 @@ public class TextGraphic extends Graphic {
 
   @Override
   public boolean contains(float x, float y) {
-    return rect.contains((int) x, (int) y);
+    return false;
   }
 
   private void drawText(String text, RectF rect, float textHeight, Canvas canvas) {
@@ -191,5 +196,32 @@ public class TextGraphic extends Graphic {
     // Renders the text at the bottom of the box.
     canvas.drawText(text, rect.left, rect.top - STROKE_WIDTH, textPaint);
   }
+  public List<TextGraphic> getTextGraphics() {
+    List<TextGraphic> textGraphics = new ArrayList<>();
+    for (Graphic graphic : graphicOverlay.getGraphics()) {
+        textGraphics.add((TextGraphic) graphic);
+    }
+    return textGraphics;
+  }
+
+  public TextGraphic getNearestText(List<TextGraphic> textGraphics, float x, float y) {
+    float nearestDistance = Float.MAX_VALUE;
+    TextGraphic nearestText = null;
+    for (TextGraphic textGraphic : textGraphics) {
+      Rect boundingBox = textGraphic.rect;
+      Toast.makeText(getApplicationContext(), String.valueOf(boundingBox.centerX()), Toast.LENGTH_SHORT).show();
+      if (boundingBox != null) {
+        float centerX = boundingBox.exactCenterX();
+        float centerY = boundingBox.exactCenterY();
+        float distance = (x - centerX) * (x - centerX) + (y - centerY) * (y - centerY);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestText = textGraphic;
+        }
+      }
+    }
+    return nearestText;
+  }
+
 
 }

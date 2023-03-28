@@ -60,6 +60,7 @@ import com.yes.visionvoicedemo.STTActivity;
 import com.yes.visionvoicedemo.cameras.textdetector.TextGraphic;
 import com.yes.visionvoicedemo.cameras.textdetector.TextRecognitionProcessor;
 import com.yes.visionvoicedemo.cameras.preference.PreferenceUtils;
+import com.yes.visionvoicedemo.cameras.textdetector.TextGraphic;
 //import com.google.mlkit.vision.demo.preference.SettingsActivity;
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions;
 
@@ -101,7 +102,7 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
   private CameraSelector cameraSelector;
 
 
-  @SuppressLint({"MissingInflatedId", "CutPasteId"})
+  @SuppressLint({"MissingInflatedId", "CutPasteId", "ClickableViewAccessibility"})
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -160,38 +161,31 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
       }
     });
 
+    previewView = findViewById(R.id.preview_view);
     previewView.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-          TextGraphic textGraphic = getTouchedTextGraphic(event);
-          if (textGraphic != null) {
-            String text = textGraphic.getText();
-            if (text != null) {
-              Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
-              return true;
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+          TextGraphic textGraphic = new TextGraphic(graphicOverlay, null, true, false, true);
+          List<TextGraphic> textGraphics = textGraphic.getTextGraphics();
+          if (textGraphics != null) {
+            Toast.makeText(CameraXLivePreviewActivity.this, String.valueOf(textGraphics.size()), Toast.LENGTH_SHORT).show();
+            TextGraphic nearestText = textGraphic.getNearestText(textGraphics , event.getX(), event.getY());
+            if (nearestText != null) {
+              Toast.makeText(CameraXLivePreviewActivity.this, "oK", Toast.LENGTH_SHORT).show();
+              String text = nearestText.getText();
+              if (text != null) {
+                Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
+              }
             } else {
-              Toast.makeText(CameraXLivePreviewActivity.this, "FAIL22", Toast.LENGTH_SHORT).show();
+              Toast.makeText(CameraXLivePreviewActivity.this, "Fail", Toast.LENGTH_SHORT).show();
             }
-          } else {
-            Toast.makeText(CameraXLivePreviewActivity.this, "Fail1", Toast.LENGTH_SHORT).show();
           }
         }
         return false;
       }
     });
-  }
 
-  private TextGraphic getTouchedTextGraphic(MotionEvent event) {
-    float x = event.getX();
-    float y = event.getY();
-    for (GraphicOverlay.Graphic graphic : graphicOverlay.getGraphics()) {
-      if (graphic.contains(x, y)) {
-        return (TextGraphic) graphic;
-      }
-    }
-    return null;
   }
 
   private void startRecording() {
