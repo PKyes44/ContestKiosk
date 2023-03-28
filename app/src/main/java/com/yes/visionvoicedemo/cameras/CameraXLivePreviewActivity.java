@@ -164,28 +164,30 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
       @Override
       public boolean onTouch(View v, MotionEvent event) {
         int action = event.getAction();
-        float curX = event.getX();
-        float curY = event.getY();
-
         if (action == MotionEvent.ACTION_DOWN) {
-          graphicOverlay.invalidate(); // 그래픽 오버레이를 다시 그려주도록 invalidate() 함수 호출
-          TextGraphic textGraphic = getTouchedTextGraphic(curX, curY);
+          TextGraphic textGraphic = getTouchedTextGraphic(event);
           if (textGraphic != null) {
             String text = textGraphic.getText();
-            Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
+            if (text != null) {
+              Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
+              return true;
+            } else {
+              Toast.makeText(CameraXLivePreviewActivity.this, "FAIL22", Toast.LENGTH_SHORT).show();
+            }
           } else {
-            Toast.makeText(CameraXLivePreviewActivity.this, "Text not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(CameraXLivePreviewActivity.this, "Fail1", Toast.LENGTH_SHORT).show();
           }
-          return true;
         }
         return false;
       }
     });
   }
 
-  private TextGraphic getTouchedTextGraphic(float x, float y) {
+  private TextGraphic getTouchedTextGraphic(MotionEvent event) {
+    float x = event.getX();
+    float y = event.getY();
     for (GraphicOverlay.Graphic graphic : graphicOverlay.getGraphics()) {
-      if (graphic != null && graphic.contains(x, y)) {
+      if (graphic.contains(x, y)) {
         return (TextGraphic) graphic;
       }
     }

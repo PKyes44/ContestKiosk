@@ -348,6 +348,10 @@
         updateTransformationIfNeeded();
 
         for (Graphic graphic : graphics) {
+          if (graphic instanceof TextGraphic) {
+            TextGraphic textGraphic = (TextGraphic) graphic;
+            textGraphic.updateText();
+          }
           graphic.draw(canvas);
         }
       }

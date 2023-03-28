@@ -55,7 +55,7 @@ public class TextGraphic extends Graphic {
   private final Paint rectPaint;
   private final Paint textPaint;
   private final Paint labelPaint;
-  private final Text text;
+  private Text text;
   private final boolean shouldGroupTextInBlocks;
   private final boolean showLanguageTag;
   private final boolean showConfidence;
@@ -97,6 +97,9 @@ public class TextGraphic extends Graphic {
     return text.getText();
   }
 
+  public void updateText() {
+    postInvalidate();
+  }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
