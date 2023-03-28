@@ -16,9 +16,6 @@
 
 package com.yes.visionvoicedemo.cameras;
 
-import static android.view.MotionEvent.ACTION_DOWN;
-import static androidx.camera.core.CameraX.getContext;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -70,7 +67,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import com.yes.visionvoicedemo.cameras.textdetector.TextGraphic;
 
 /** Live preview demo app for ML Kit APIs using CameraX. */
 @KeepName
@@ -172,9 +168,10 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
         float curY = event.getY();
 
         if (action == MotionEvent.ACTION_DOWN) {
+          graphicOverlay.invalidate(); // 그래픽 오버레이를 다시 그려주도록 invalidate() 함수 호출
           TextGraphic textGraphic = getTouchedTextGraphic(curX, curY);
           if (textGraphic != null) {
-            String text = textGraphic.getText().getText();
+            String text = textGraphic.getText();
             Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
           } else {
             Toast.makeText(CameraXLivePreviewActivity.this, "Text not found", Toast.LENGTH_SHORT).show();
@@ -188,7 +185,7 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
 
   private TextGraphic getTouchedTextGraphic(float x, float y) {
     for (GraphicOverlay.Graphic graphic : graphicOverlay.getGraphics()) {
-      if (graphic instanceof TextGraphic && graphic.contains(x, y)) {
+      if (graphic != null && graphic.contains(x, y)) {
         return (TextGraphic) graphic;
       }
     }

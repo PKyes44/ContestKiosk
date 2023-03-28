@@ -246,6 +246,10 @@
       }
     }
 
+    public void invalidate() {
+      super.invalidate();
+    }
+
 
     public Graphic findGraphicAtLocation(float x, float y) {
       synchronized (lock) {

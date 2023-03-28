@@ -93,9 +93,10 @@ public class TextGraphic extends Graphic {
     postInvalidate();
   }
 
-  public Text getText() {
-    return text;
+  public String getText() {
+    return text.getText();
   }
+
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
