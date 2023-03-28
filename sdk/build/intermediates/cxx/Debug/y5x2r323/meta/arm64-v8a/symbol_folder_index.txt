@@ -1,0 +1,1 @@
+C:\Users\Yang\StudioProjects\VisionVoiceDemo\sdk\build\intermediates\cxx\Debug\y5x2r323\obj\arm64-v8a

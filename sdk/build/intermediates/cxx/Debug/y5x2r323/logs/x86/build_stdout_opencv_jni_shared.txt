@@ -1,0 +1,2 @@
+ninja: Entering directory `C:\Users\Yang\StudioProjects\VisionVoiceDemo\sdk\.cxx\Debug\y5x2r323\x86'
+ninja: no work to do.
