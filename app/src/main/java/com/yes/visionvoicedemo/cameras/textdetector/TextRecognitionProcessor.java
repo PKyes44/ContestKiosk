@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
 import com.yes.visionvoicedemo.cameras.GraphicOverlay;
+import com.yes.visionvoicedemo.cameras.TextObjectInterface;
 import com.yes.visionvoicedemo.cameras.VisionProcessorBase;
 import com.yes.visionvoicedemo.cameras.preference.PreferenceUtils;
 import com.google.mlkit.vision.text.Text;
@@ -42,13 +43,16 @@ public class TextRecognitionProcessor extends VisionProcessorBase<Text> {
   private static final String TAG = "TextRecProcessor";
 
   private final TextRecognizer textRecognizer;
+  private final TextObjectInterface textObjectInterface;
   private final Boolean shouldGroupRecognizedTextInBlocks;
   private final Boolean showLanguageTag;
   private final boolean showConfidence;
 
   public TextRecognitionProcessor(
+          TextObjectInterface textObjectInterface,
       Context context, TextRecognizerOptionsInterface textRecognizerOptions) {
     super(context);
+    this.textObjectInterface = textObjectInterface;
     shouldGroupRecognizedTextInBlocks = PreferenceUtils.shouldGroupRecognizedTextInBlocks(context);
     showLanguageTag = PreferenceUtils.showLanguageTag(context);
     showConfidence = PreferenceUtils.shouldShowTextConfidence(context);
@@ -74,6 +78,7 @@ public class TextRecognitionProcessor extends VisionProcessorBase<Text> {
         new TextGraphic(
             graphicOverlay,
             text,
+            textObjectInterface,
             shouldGroupRecognizedTextInBlocks,
             showLanguageTag,
             showConfidence));

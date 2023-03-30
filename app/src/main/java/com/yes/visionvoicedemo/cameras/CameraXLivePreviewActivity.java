@@ -73,7 +73,7 @@ import java.util.List;
 @KeepName
 @RequiresApi(VERSION_CODES.LOLLIPOP)
 public class CameraXLivePreviewActivity extends AppCompatActivity
-    implements OnItemSelectedListener, CompoundButton.OnCheckedChangeListener {
+    implements OnItemSelectedListener, CompoundButton.OnCheckedChangeListener, TextObjectInterface {
 
   private Integer REQUEST_RECORD_AUDIO_PERMISSION = 200;
   private MediaRecorder mediaRecorder;
@@ -101,6 +101,13 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
   private int lensFacing = CameraSelector.LENS_FACING_BACK;
   private CameraSelector cameraSelector;
 
+  private ArrayList<TextObject> textObjectList = new ArrayList<>();
+  private TextObjectInterface textObjectInterface = new TextObjectInterface() {
+    @Override
+    public void onTextInfoAdded(ArrayList<TextObject> textObjects) {
+      textObjectList = textObjects;
+    }
+  };
 
   @SuppressLint({"MissingInflatedId", "CutPasteId", "ClickableViewAccessibility"})
   @Override
@@ -147,6 +154,7 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
               cameraProvider = provider;
               bindAllCameraUseCases();
             });
+
     recordButton = findViewById(R.id.record_btn);
     convertedTextView = findViewById(R.id.convertedTextByUser);
 
@@ -165,27 +173,15 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
     previewView.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-          TextGraphic textGraphic = new TextGraphic(graphicOverlay, null, true, false, true);
-          List<TextGraphic> textGraphics = textGraphic.getTextGraphics();
-          if (textGraphics != null) {
-            Toast.makeText(CameraXLivePreviewActivity.this, String.valueOf(textGraphics.size()), Toast.LENGTH_SHORT).show();
-            TextGraphic nearestText = textGraphic.getNearestText(textGraphics , event.getX(), event.getY());
-            if (nearestText != null) {
-              Toast.makeText(CameraXLivePreviewActivity.this, "oK", Toast.LENGTH_SHORT).show();
-              String text = nearestText.getText();
-              if (text != null) {
-                Toast.makeText(CameraXLivePreviewActivity.this, text, Toast.LENGTH_SHORT).show();
-              }
-            } else {
-              Toast.makeText(CameraXLivePreviewActivity.this, "Fail", Toast.LENGTH_SHORT).show();
-            }
-          }
-        }
+
         return false;
       }
     });
+  }
 
+  @Override
+  public void onTextInfoAdded(ArrayList<TextObject> textObjects) {
+    textObjectList = textObjects;
   }
 
   private void startRecording() {
@@ -379,7 +375,7 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
       if (TEXT_RECOGNITION_KOREAN.equals(selectedModel)) {
         Log.i(TAG, "Using on-device Text recognition Processor for Latin and Korean.");
         imageProcessor =
-                new TextRecognitionProcessor(this, new KoreanTextRecognizerOptions.Builder().build());
+                new TextRecognitionProcessor(textObjectInterface,this, new KoreanTextRecognizerOptions.Builder().build());
       } else {
         throw new IllegalStateException("Invalid model name");
       }

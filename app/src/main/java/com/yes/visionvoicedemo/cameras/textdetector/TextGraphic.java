@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
+import com.yes.visionvoicedemo.cameras.CameraXLivePreviewActivity;
 import com.yes.visionvoicedemo.cameras.GraphicOverlay;
 import com.yes.visionvoicedemo.cameras.GraphicOverlay.Graphic;
 import com.google.mlkit.vision.text.Text;
@@ -35,6 +36,8 @@ import com.google.mlkit.vision.text.Text.Element;
 import com.google.mlkit.vision.text.Text.Line;
 import com.google.mlkit.vision.text.Text.Symbol;
 import com.google.mlkit.vision.text.Text.TextBlock;
+import com.yes.visionvoicedemo.cameras.TextObject;
+import com.yes.visionvoicedemo.cameras.TextObjectInterface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +48,7 @@ import java.util.Locale;
  * Graphic instance for rendering TextBlock position, size, and ID within an associated graphic
  * overlay view.
  */
-public class TextGraphic extends Graphic {
+public class TextGraphic extends Graphic{
 
   private static final String TAG = "TextGraphic";
   private static final String TEXT_WITH_LANGUAGE_TAG_FORMAT = "%s:%s";
@@ -58,23 +61,25 @@ public class TextGraphic extends Graphic {
   private final Paint rectPaint;
   private final Paint textPaint;
   private final Paint labelPaint;
-  private Text text;
+  private final Text text;
+
+  private final TextObjectInterface textObjectInterface;
+
   private final boolean shouldGroupTextInBlocks;
   private final boolean showLanguageTag;
   private final boolean showConfidence;
-  private Rect rect = null;
-
-  private GraphicOverlay graphicOverlay;
 
   public TextGraphic(
           GraphicOverlay overlay,
           Text text,
+          TextObjectInterface textObjectInterface,
           boolean shouldGroupTextInBlocks,
           boolean showLanguageTag,
           boolean showConfidence) {
     super(overlay);
 
     this.text = text;
+    this.textObjectInterface = textObjectInterface;
     this.shouldGroupTextInBlocks = shouldGroupTextInBlocks;
     this.showLanguageTag = showLanguageTag;
     this.showConfidence = showConfidence;
@@ -92,8 +97,6 @@ public class TextGraphic extends Graphic {
     labelPaint.setColor(MARKER_COLOR);
     labelPaint.setStyle(Paint.Style.FILL);
 
-    // Rect 객체를 초기화
-    rect = new Rect();
     // Redraw the overlay, as this graphic has been added.
     postInvalidate();
   }
@@ -115,11 +118,10 @@ public class TextGraphic extends Graphic {
   @Override
   public void draw(Canvas canvas) {
     Log.d(TAG, "Text is: " + text.getText());
+
+    ArrayList<TextObject> textObjects = new ArrayList<>();
     for (TextBlock textBlock : text.getTextBlocks()) {
-      // Renders the text at the bottom of the box.
-      Log.d(TAG, "TextBlock text is: " + textBlock.getText());
-      Log.d(TAG, "TextBlock boundingbox is: " + textBlock.getBoundingBox());
-      Log.d(TAG, "TextBlock cornerpoint is: " + Arrays.toString(textBlock.getCornerPoints()));
+
       if (shouldGroupTextInBlocks) {
         String text =
                 showLanguageTag
@@ -128,18 +130,18 @@ public class TextGraphic extends Graphic {
                         textBlock.getRecognizedLanguage(),
                         textBlock.getText())
                         : textBlock.getText();
+        RectF rectF = new RectF(textBlock.getBoundingBox());
+
+        TextObject textInfo = new TextObject(text, rectF);
+        textObjects.add(textInfo);
+
         drawText(
                 text,
-                new RectF(textBlock.getBoundingBox()),
+                rectF,
                 TEXT_SIZE * textBlock.getLines().size() + 2 * STROKE_WIDTH,
                 canvas);
       } else {
         for (Line line : textBlock.getLines()) {
-          Log.d(TAG, "Line text is: " + line.getText());
-          Log.d(TAG, "Line boundingbox is: " + line.getBoundingBox());
-          Log.d(TAG, "Line cornerpoint is: " + Arrays.toString(line.getCornerPoints()));
-          Log.d(TAG, "Line confidence is: " + line.getConfidence());
-          Log.d(TAG, "Line angle is: " + line.getAngle());
           String text =
                   showLanguageTag
                           ? String.format(
@@ -149,28 +151,19 @@ public class TextGraphic extends Graphic {
                   showConfidence
                           ? String.format(Locale.KOREA, "%s (%.2f)", text, line.getConfidence())
                           : text;
-
-          drawText(text, new RectF(line.getBoundingBox()), TEXT_SIZE + 2 * STROKE_WIDTH, canvas);
-
-          for (Element element : line.getElements()) {
-            Log.d(TAG, "Element text is: " + element.getText());
-            Log.d(TAG, "Element boundingbox is: " + element.getBoundingBox());
-            Log.d(TAG, "Element cornerpoint is: " + Arrays.toString(element.getCornerPoints()));
-            Log.d(TAG, "Element language is: " + element.getRecognizedLanguage());
-            Log.d(TAG, "Element confidence is: " + element.getConfidence());
-            Log.d(TAG, "Element angle is: " + element.getAngle());
-            for (Symbol symbol : element.getSymbols()) {
-              Log.d(TAG, "Symbol text is: " + symbol.getText());
-              Log.d(TAG, "Symbol boundingbox is: " + symbol.getBoundingBox());
-              Log.d(TAG, "Symbol cornerpoint is: " + Arrays.toString(symbol.getCornerPoints()));
-              Log.d(TAG, "Symbol confidence is: " + symbol.getConfidence());
-              Log.d(TAG, "Symbol angle is: " + symbol.getAngle());
-            }
-          }
+          RectF rectF = new RectF(line.getBoundingBox());
+          TextObject textInfo = new TextObject(text, rectF);
+          textObjects.add(textInfo);
+          drawText(text, rectF, TEXT_SIZE + 2 * STROKE_WIDTH, canvas);
         }
       }
     }
+    textObjectInterface.onTextInfoAdded(textObjects);
   }
+
+//  public List<TextObject> getTextObjects() {
+//    return textObjects;
+//  }
 
   @Override
   public boolean contains(float x, float y) {
@@ -196,32 +189,23 @@ public class TextGraphic extends Graphic {
     // Renders the text at the bottom of the box.
     canvas.drawText(text, rect.left, rect.top - STROKE_WIDTH, textPaint);
   }
-  public List<TextGraphic> getTextGraphics() {
-    List<TextGraphic> textGraphics = new ArrayList<>();
-    for (Graphic graphic : graphicOverlay.getGraphics()) {
-        textGraphics.add((TextGraphic) graphic);
-    }
-    return textGraphics;
-  }
 
-  public TextGraphic getNearestText(List<TextGraphic> textGraphics, float x, float y) {
-    float nearestDistance = Float.MAX_VALUE;
-    TextGraphic nearestText = null;
-    for (TextGraphic textGraphic : textGraphics) {
-      Rect boundingBox = textGraphic.rect;
-      Toast.makeText(getApplicationContext(), String.valueOf(boundingBox.centerX()), Toast.LENGTH_SHORT).show();
-      if (boundingBox != null) {
-        float centerX = boundingBox.exactCenterX();
-        float centerY = boundingBox.exactCenterY();
-        float distance = (x - centerX) * (x - centerX) + (y - centerY) * (y - centerY);
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestText = textGraphic;
-        }
-      }
-    }
-    return nearestText;
-  }
+//  public TextObject getNearestTextObject(float x, float y) {
+//    TextObject nearestTextObject = null;
+//    float nearestDistance = Float.MAX_VALUE;
+//    Toast.makeText(getApplicationContext(), String.valueOf(textObjects.size()), Toast.LENGTH_SHORT).show();
+//    for (TextObject textObject : textObjects) {
+//      float distance = distance(x, y, textObject.getRect().centerX(), textObject.getRect().centerY());
+//      if (distance < nearestDistance) {
+//        nearestDistance = distance;
+//        nearestTextObject = textObject;
+//      }
+//    }
+//    return nearestTextObject;
+//  }
 
+  private float distance(float x1, float y1, float x2, float y2) {
+    return (float) Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+  }
 
 }

@@ -30,7 +30,6 @@
     import android.util.Log;
     import android.view.MotionEvent;
     import android.view.View;
-    import android.widget.Toast;
 
     import com.google.common.base.Preconditions;
     import com.google.common.primitives.Ints;
@@ -242,7 +241,6 @@
 
       public List<Graphic> getGraphics() {
         synchronized (lock) {
-          Toast.makeText(getContext(), String.valueOf(graphics.size()), Toast.LENGTH_SHORT).show();
           return new ArrayList<>(graphics);
         }
       }
@@ -342,5 +340,14 @@
         }
       }
 
-
+      public List<TextGraphic> getTextGraphics() {
+        List<TextGraphic> textGraphics = new ArrayList<>();
+        for (Graphic graphic : graphics) {
+          if (graphic instanceof TextGraphic) {
+            TextGraphic textGraphic = (TextGraphic) graphic;
+            textGraphics.add(textGraphic);
+          }
+        }
+        return textGraphics;
+      }
     }
