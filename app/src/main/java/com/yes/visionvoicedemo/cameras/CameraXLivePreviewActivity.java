@@ -18,11 +18,14 @@ package com.yes.visionvoicedemo.cameras;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Size;
 import android.view.MotionEvent;
@@ -68,6 +71,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /** Live preview demo app for ML Kit APIs using CameraX. */
 @KeepName
@@ -100,6 +105,7 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
   private String selectedModel = TEXT_RECOGNITION_KOREAN;
   private int lensFacing = CameraSelector.LENS_FACING_BACK;
   private CameraSelector cameraSelector;
+  private TextToSpeech tts;
 
   private ArrayList<TextObject> textObjectList = new ArrayList<>();
   private TextObjectInterface textObjectInterface = new TextObjectInterface() {
@@ -129,6 +135,20 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
     if (graphicOverlay == null) {
       Log.d(TAG, "graphicOverlay is null");
     }
+    tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+      @Override
+      public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+          int result = tts.setLanguage(Locale.KOREA);
+          if (result == TextToSpeech.LANG_MISSING_DATA ||
+                  result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Log.e("TTS", "This Language is not supported");
+          }
+        } else {
+          Log.e("TTS", "Initialization failed");
+        }
+      }
+    });
 
     Spinner spinner = findViewById(R.id.spinner);
     List<String> options = new ArrayList<>();
@@ -173,10 +193,47 @@ public class CameraXLivePreviewActivity extends AppCompatActivity
     previewView.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+          TextObject textObject = getNearestTextObject(textObjectList, event.getX(), event.getY());
+          if (!Objects.isNull(textObject)) {
+            String text = textObject.getText();
+            if (text != null) {
+              speak(text, 0.5f);
+              return true;
+            } else {
+              Toast.makeText(CameraXLivePreviewActivity.this, "fail", Toast.LENGTH_SHORT).show();
+            }
+          }
+        }
         return false;
       }
     });
+  }
+
+  public void speak(String text, float volume) {
+    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+    int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+    int volumeLevel = (int) (maxVolume * volume);
+    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeLevel, 0);
+    tts.stop();
+    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+  }
+
+  public TextObject getNearestTextObject(ArrayList<TextObject> textObjects, float x, float y) {
+    TextObject nearestTextObject = null;
+    float nearestDistance = Float.MAX_VALUE;
+    for (TextObject textObject : textObjects) {
+      float distance = distance(x, y, textObject.getRect().centerX(), textObject.getRect().centerY());
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestTextObject = textObject;
+      }
+    }
+    return nearestTextObject;
+  }
+
+  private float distance(float x1, float y1, float x2, float y2) {
+    return (float) Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
   }
 
   @Override

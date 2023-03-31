@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
+import android.view.Window
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
@@ -32,6 +33,10 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportActionBar?.hide()
+
         setContentView(R.layout.activity_main)
         OpenCVLoader.initDebug();
         voiceOrderActivity = STTActivity()

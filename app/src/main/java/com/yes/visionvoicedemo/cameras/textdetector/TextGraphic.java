@@ -161,10 +161,6 @@ public class TextGraphic extends Graphic{
     textObjectInterface.onTextInfoAdded(textObjects);
   }
 
-//  public List<TextObject> getTextObjects() {
-//    return textObjects;
-//  }
-
   @Override
   public boolean contains(float x, float y) {
     return false;
@@ -188,24 +184,6 @@ public class TextGraphic extends Graphic{
         labelPaint);
     // Renders the text at the bottom of the box.
     canvas.drawText(text, rect.left, rect.top - STROKE_WIDTH, textPaint);
-  }
-
-//  public TextObject getNearestTextObject(float x, float y) {
-//    TextObject nearestTextObject = null;
-//    float nearestDistance = Float.MAX_VALUE;
-//    Toast.makeText(getApplicationContext(), String.valueOf(textObjects.size()), Toast.LENGTH_SHORT).show();
-//    for (TextObject textObject : textObjects) {
-//      float distance = distance(x, y, textObject.getRect().centerX(), textObject.getRect().centerY());
-//      if (distance < nearestDistance) {
-//        nearestDistance = distance;
-//        nearestTextObject = textObject;
-//      }
-//    }
-//    return nearestTextObject;
-//  }
-
-  private float distance(float x1, float y1, float x2, float y2) {
-    return (float) Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
   }
 
 }

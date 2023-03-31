@@ -339,15 +339,4 @@
           }
         }
       }
-
-      public List<TextGraphic> getTextGraphics() {
-        List<TextGraphic> textGraphics = new ArrayList<>();
-        for (Graphic graphic : graphics) {
-          if (graphic instanceof TextGraphic) {
-            TextGraphic textGraphic = (TextGraphic) graphic;
-            textGraphics.add(textGraphic);
-          }
-        }
-        return textGraphics;
-      }
     }
